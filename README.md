@@ -241,3 +241,5 @@
   * **Liquid Implementation:** Is the Liquid code correctly used to fetch and display the product data (image, title, description)? This means the correct product handle is used, and the Liquid objects and filters are applied.
   * **Frontend Display:** Does the section appear on the homepage with the correct product information and basic styling after deployment?
   * **Understanding of Liquid Basics:** Can the developer articulate *why* they used `all_products` and `featured_product.title` (or similar objects) and what they represent? This can be a brief verbal explanation after the task is completed.
+
+
