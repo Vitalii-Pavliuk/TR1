@@ -1,79 +1,161 @@
-
 <style>
-          .featured-product-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            background-color: #f8f8f8;
-            border-radius: 8px;
-            margin: 40px auto;
-            max-width: 900px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-          }
+  .featured-product-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    margin: 40px auto;
+    max-width: 900px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
 
-          .featured-product-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin-bottom: 20px;
-          }
+  .featured-product-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
 
-          .featured-product-title {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            color: #333;
-          }
+  .featured-product-title {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: #333;
+  }
 
-          .featured-product-description {
-            font-size: 1.1em;
-            line-height: 1.6;
-            color: #555;
-            max-width: 700px;
-            margin-bottom: 20px;
-          }
-        </style>
+  .featured-product-description {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #555;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
 
-        <div class="featured-product-container">
-          </div>
+  .product-option {
+    margin-bottom: 16px;
+    text-align: left;
+    width: 100%;
+    max-width: 300px;
+  }
 
+  .product-option label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #222;
+    font-size: 0.95em;
+  }
 
+  .product-option select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    transition: border-color 0.2s;
+  }
 
-      {% assign featured_product = all_products['my-awesome-featured-product'] %}
+  .product-option select:focus {
+    border-color: #0077cc;
+    outline: none;
+  }
 
-        {% if featured_product %}
-          {% else %}
-          <p>Featured product not found. Please ensure the product handle is correct.</p>
-        {% endif %}
+  .add-to-cart-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
 
-        <img
-          src="{{ featured_product.featured_image | image_url: width: 600 }}"
-          alt="{{ featured_product.title }}"
-          class="featured-product-image"
-        >
-        <h2 class="featured-product-title">{{ featured_product.title }}</h2>
-        <div class="featured-product-description">
-          {{ featured_product.description }}
+  .add-to-cart-button:hover {
+    background-color: #005fa3;
+  }
+
+</style>
+
+{% assign featured_product = all_products[section.settings.product_handle] %}
+
+{% if featured_product %}
+  <div class="featured-product-container">
+    <img
+      src="{{ featured_product.featured_image | image_url: width: 600 }}"
+      alt="{{ featured_product.title }}"
+      class="featured-product-image"
+    />
+    <h2 class="featured-product-title">{{ featured_product.title }}</h2>
+    <div class="featured-product-description">
+      {{ featured_product.description }}
+    </div>
+
+    <form method="post" action="/cart/add" onsubmit="return validateForm(this)">
+      <input
+        type="hidden"
+        name="id"
+        value="{{ featured_product.variants.first.id }}"
+      />
+
+      {% for option in featured_product.options_with_values %}
+        <div class="product-option">
+          <label for="option-{{ forloop.index0 }}">{{ option.name }}</label>
+          <select
+            name="options[{{ option.name }}]"
+            id="option-{{ forloop.index0 }}"
+            required
+          >
+            <option value="">Select {{ option.name }}</option>
+            {% for value in option.values %}
+              <option value="{{ value }}">{{ value }}</option>
+            {% endfor %}
+          </select>
         </div>
+      {% endfor %}
 
-         {% schema %}
-        {
-          "name": "Featured Product Section",
-          "settings": [
-            {
-              "type": "text",
-              "id": "product_handle",
-              "label": "Product Handle",
-              "info": "Enter the handle of the product to feature (e.g., 'my-awesome-featured-product')",
-              "default": "my-awesome-featured-product"
-            }
-          ],
-          "presets": [
-            {
-              "name": "Featured Product",
-              "category": "Custom Sections"
-            }
-          ]
-        }
-        {% endschema %}
+      <button type="submit" class="add-to-cart-button">Add to Cart</button>
+    </form>
+  </div>
+{% else %}
+  <p>Featured product not found. Please ensure the product handle is correct.</p>
+{% endif %}
+
+<script>
+  function validateForm(form) {
+    const selects = form.querySelectorAll("select");
+    for (let select of selects) {
+      if (!select.value) {
+        document.getElementById("form-error").textContent =
+          "Please select all product options.";
+        return false;
+      }
+    }
+    document.getElementById("form-error").textContent = "";
+    return true;
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Featured Product Section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "product_handle",
+      "label": "Product Handle",
+      "info": "Enter the handle of the product to feature (e.g., 'my-awesome-featured-product')",
+      "default": "my-awesome-featured-product"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured Product",
+      "category": "Custom Sections"
+    }
+  ]
+}
+{% endschema %}
